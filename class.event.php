@@ -9,10 +9,13 @@ class Event
   protected $category;
   protected $summary;
   protected $desc;
+  protected $warnings;
+  protected $errors;
 
   function __construct($event_id)
   {
     $this->id = $event_id;
+    $this->populate_event_data();
   }
 
   public function get_id()
@@ -45,6 +48,26 @@ class Event
     return $this->desc;
   }
 
+  public function get_warnings()
+  {
+    return $this->warnings;
+  }
+
+  public function set_warning($d)
+  {
+    array_push($this->warnings, $d);
+  }
+
+  public function get_errors()
+  {
+    return $this->errors;
+  }
+
+  public function set_error($d)
+  {
+    array_push($this->errors, $d);
+  }
+
   private function populate_event_data()
   {
     // Build query
@@ -56,23 +79,41 @@ class Event
     $db = Database::getInstance();
 
     // Check connection status
-    if ($db->status == "Disconnected")
+    if ($db->get_status() == "Disconnected")
     {
-      // Output error message
+      if ($db->get_error_message())
+      {
+        $d = "Database connection error: " . $db->get_error_message();
+        $this->set_error($d);
+      }
+      else
+      {
+        $d = "Unspecified database connection error.";
+        $this->set_error($d);
+      }
     }
     else
     {
       // Make sure query is successful
       if (!$result = $db->execute_query($q))
       {
-        // Output error message
+        if ($db->get_error_message())
+        {
+          $d = "MySQL query error: " . $db->get_error_message();
+          $this->set_error($d);
+        }
+        else
+        {
+          $d = "MySQL query returned an unspecified error.";
+          $this->set_error($d);
+        }
       }
       else
       {
-        // Find all events for that month and format it into an array
         if ($result->num_rows <= 0)
         {
-          // No results
+          $d = "Event not found.";
+          $this->set_error($d);
         }
         else
         {
@@ -87,6 +128,7 @@ class Event
 
           // Populate category data
           $this->populate_event_category_id();
+          $this->populate_event_category();
 
           $result->free();
         }
@@ -105,23 +147,41 @@ class Event
     $db = Database::getInstance();
 
     // Check connection status
-    if ($db->status == "Disconnected")
+    if ($db->get_status() == "Disconnected")
     {
-      // Output error message
+      if ($db->get_error_message())
+      {
+        $d = "Database connection error: " . $db->get_error_message();
+        $this->set_error($d);
+      }
+      else
+      {
+        $d = "Unspecified database connection error.";
+        $this->set_error($d);
+      }
     }
     else
     {
       // Make sure query is successful
       if (!$result = $db->execute_query($q))
       {
-        // Output error message
+        if ($db->get_error_message())
+        {
+          $d = "MySQL query error: " . $db->get_error_message();
+          $this->set_error($d);
+        }
+        else
+        {
+          $d = "MySQL query returned an unspecified error.";
+          $this->set_error($d);
+        }
       }
       else
       {
-        // Find all events for that month and format it into an array
         if ($result->num_rows <= 0)
         {
-          // No results
+          $d = "Event category could not be found.";
+          $this->set_warning($d);
         }
         else
         {
@@ -146,23 +206,41 @@ class Event
     $db = Database::getInstance();
 
     // Check connection status
-    if ($db->status == "Disconnected")
+    if ($db->get_status() == "Disconnected")
     {
-      // Output error message
+      if ($db->get_error_message())
+      {
+        $d = "Database connection error: " . $db->get_error_message();
+        $this->set_error($d);
+      }
+      else
+      {
+        $d = "Unspecified database connection error.";
+        $this->set_error($d);
+      }
     }
     else
     {
       // Make sure query is successful
       if (!$result = $db->execute_query($q))
       {
-        // Output error message
+        if ($db->get_error_message())
+        {
+          $d = "MySQL query error: " . $db->get_error_message();
+          $this->set_error($d);
+        }
+        else
+        {
+          $d = "MySQL query returned an unspecified error.";
+          $this->set_error($d);
+        }
       }
       else
       {
-        // Find all events for that month and format it into an array
         if ($result->num_rows <= 0)
         {
-          // No results
+          $d = "Category could not be found.";
+          $this->set_warning($d);
         }
         else
         {

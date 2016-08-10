@@ -4,9 +4,9 @@ class Database extends Dbconfig
 {
   private static $instance; // Database object is a singleton
 
-  public    $status = "Disconnected";
-  public    $error_message;
-  protected $db_connection;
+  private $status = "Disconnected";
+  private $error_message;
+  private $db_connection;
 
   public static function getInstance()
   {
@@ -28,6 +28,16 @@ class Database extends Dbconfig
 
   private function __wakeup()
   {
+  }
+
+  public function get_status()
+  {
+    return $this->status;
+  }
+
+  public function get_error_message()
+  {
+    return $this->error_message;
   }
 
   public function connect_to_database($mysql_host, $mysql_user, $mysql_password, $mysql_database)
@@ -62,7 +72,7 @@ class Database extends Dbconfig
     {
       $this->status = "Connected";
       $this->error_message = null;
-      return true;
+      return $this->db_connection;
     }
   }
 
