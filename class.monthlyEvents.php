@@ -83,10 +83,11 @@ class MonthlyEvents
         }
         else
         {
-          while($row = $qresult->fetch_assoc())
+          while($row = $result->fetch_assoc())
           {
             array_push($this->events_ids, $row["evdet_id"]);
           }
+          $result->free();
         }
       }
     }
@@ -103,7 +104,7 @@ class MonthlyEvents
     {
       foreach ($this->events_ids as $event_id)
       {
-        $event = new Event($event_id)
+        $event = new Event($event_id);
         array_push($this->events, $event);
       }
     }
