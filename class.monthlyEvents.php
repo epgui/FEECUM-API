@@ -4,8 +4,8 @@ class MonthlyEvents
 {
   protected $year_number;
   protected $month_number;
-  protected $unix_start_of_month;
-  protected $unix_end_of_month;
+  public $unix_start_of_month;
+  public $unix_end_of_month;
   protected $events_ids = [];
   protected $events = [];
   protected $warnings = [];
@@ -19,10 +19,10 @@ class MonthlyEvents
     $this->compute_unix_timestamps();
 
     // Populate list of every event id requested
-    $this->events_ids = $this->populate_list_of_event_ids();
+    $this->populate_events_ids();
 
     // Populate list of every event requested
-    $this->events = $this->populate_list_of_events();
+    $this->populate_events();
   }
 
   public function get_year_number()
@@ -65,21 +65,30 @@ class MonthlyEvents
     array_push($this->warnings, $d);
   }
 
-  private function compute_unix_timestamps()
+  protected function compute_unix_timestamps()
   {
-    $this->unix_start_of_month = "";
-    $this->unix_end_of_month = "";
+    $year = $this->year_number;
+    $month = $this->month_number;
+
+    $this->unix_start_of_month = mktime( 0,  0,  0, $month,     1, $year);
+    $this->unix_end_of_month   = mktime(23, 59, 00, $month + 1, 0, $year);
 
     return null;
   }
 
-  private function populate_list_of_event_ids()
+  protected function populate_events_ids()
   {
     // Build MySQL query
     $q  = "SELECT evdet_id FROM x8g2f_jevents_vevdetail";
     $q .= " WHERE dtstart >= " . $this->unix_start_of_month;
     $q .= " AND dtstart <= " . $this->unix_end_of_month;
-    $q .= " ORDER BY dtstart asc";
+    $q .= " ORDER BY dtstart ASC";
+
+    // Another query will be necessary to find repeat events. For example:
+    //
+    // SELECT eventdetail_id FROM x8g2f_jevents_repetition
+    // WHERE startrepeat BETWEEN '2014-04-01' AND '2014-04-30 23:59:59'
+    // ORDER BY startrepeat ASC
 
     // Find the database connection
     $db = Database::getInstance();
@@ -91,11 +100,13 @@ class MonthlyEvents
       {
         $d = "Database connection error: " . $db->get_error_message();
         $this->set_error($d);
+        return false;
       }
       else
       {
         $d = "Unspecified database connection error.";
         $this->set_error($d);
+        return false;
       }
     }
     else
@@ -107,20 +118,23 @@ class MonthlyEvents
         {
           $d = "MySQL query error: " . $db->get_error_message();
           $this->set_error($d);
+          return false;
         }
         else
         {
           $d = "MySQL query returned an unspecified error.";
           $this->set_error($d);
+          return false;
         }
       }
       else
       {
         // Find all events for that month and format it into an array
-        if ($result->num_rows <= 0)
+        if ($result->num_rows == 0)
         {
           $d = "No events were found for this month.";
           $this->set_warning($d);
+          return true;
         }
         else
         {
@@ -129,17 +143,18 @@ class MonthlyEvents
             array_push($this->events_ids, $row["evdet_id"]);
           }
           $result->free();
+          return true;
         }
       }
     }
   }
 
-  private function populate_list_of_events()
+  private function populate_events()
   {
-    if ($this->events_ids == null)
+    if ($this->events_ids == [])
     {
-      // There are no events
-      $this->events = [];
+      $d = "Warning: there are no events for this month.";
+      $this->set_warning($d);
     }
     else
     {

@@ -8,7 +8,7 @@ class Event
   protected $cat_id;
   protected $category;
   protected $summary;
-  protected $desc;
+  protected $description;
   protected $warnings;
   protected $errors;
 
@@ -45,7 +45,7 @@ class Event
 
   public function get_description()
   {
-    return $this->desc;
+    return $this->description;
   }
 
   public function get_warnings()
