@@ -118,7 +118,7 @@ class Event
         else
         {
           // Grab single record
-          $event_record = $result->fetch_assoc()
+          $event_record = $result->fetch_assoc();
 
           // Populate relevant properties
           $this->t_start     = $event_record["dtstart"];
@@ -186,7 +186,7 @@ class Event
         else
         {
           // Populate the category id
-          $event_record = $result->fetch_assoc()
+          $event_record = $result->fetch_assoc();
           $this->cat_id = $event_record["catid"];
 
           $result->free();
@@ -245,7 +245,7 @@ class Event
         else
         {
           // Populate the category id
-          $category_record = $result->fetch_assoc()
+          $category_record = $result->fetch_assoc();
           $this->category = $category_record["title"];
 
           $result->free();

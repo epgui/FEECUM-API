@@ -41,13 +41,13 @@ else
     {
       $monthly_events = new MonthlyEvents($requested_y, $requested_m);
       $events = $monthly_events->get_events;
+
+      $db->disconnect();
     }
   }
 }
 
 // Format everything nicely in json
 json_encode(array("error" => $error, "error_message" => $error_message, "events" => $events));
-
-$db->disconnect();
 
 ?>
