@@ -292,8 +292,8 @@ class MonthlyEvents
       foreach ($repeat_events_records as $repeat_event_record)
       {
         $repeat_event_id      = $repeat_event_record["eventdetail_id"];
-        $unix_timestamp_start = strtotime($repeat_event_record["startrepeat"]);
-        $unix_timestamp_end   = strtotime($repeat_event_record["endrepeat"]);
+        $unix_timestamp_start = utf8_encode(strtotime($repeat_event_record["startrepeat"]));
+        $unix_timestamp_end   = utf8_encode(strtotime($repeat_event_record["endrepeat"]));
 
         $repeat_event = new Event($repeat_event_id);
 

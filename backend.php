@@ -4,7 +4,7 @@
 ini_set('display_errors', 1);
 
 // Add this in production:
-// header('Content-Type: application/json; charset=utf-8');
+header('Content-Type: application/json; charset=utf-8');
 
 include("class.dbconfig.php");
 include("class.database.php");
@@ -55,7 +55,7 @@ else
 }
 
 // Format everything nicely in json
-$json = json_encode(array("error" => $error, "error_message" => $error_message, "events" => $events), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+$json = json_encode(array("error" => $error, "error_message" => $error_message, "events" => $events), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 
 // Output result
 echo($json);
