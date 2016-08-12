@@ -32,6 +32,8 @@ class MonthlyEvents
       // Merge the two lists of event ids
       $this->events = array_merge($this->events, $repeat_events);
     }
+
+    $this->events = $this->sort_events_by_start_time($this->events);
   }
 
   public function get_year_number()
@@ -311,6 +313,35 @@ class MonthlyEvents
     }
 
     return $repeat_events;
+  }
+
+  private function sort_events_by_start_time($events_array) // Quick sort implementation
+  {
+
+    if (count($events_array) < 2)
+    {
+      return $events_array;
+    }
+
+    $left = $right = array();
+
+    reset($events_array);
+    $pivot_key = key($events_array);
+    $pivot = array_shift($events_array);
+
+    foreach($events_array as $k => $v)
+    {
+      if (strtotime($v["t_start"]) < strtotime($pivot["t_start"]))
+      {
+        $left[$k] = $v;
+      }
+      else
+      {
+        $right[$k] = $v;
+      }
+    }
+
+    return array_merge($this->sort_events_by_start_time($left), array($pivot_key => $pivot), $this->sort_events_by_start_time($right));
   }
 }
 
