@@ -18,21 +18,13 @@ class MonthlyEvents
     $this->month_number = $requested_m;
     $this->compute_unix_timestamps();
 
-    // Populate list of every event id requested
-    $this->populate_events_ids();
-
-    // Populate list of every event requested
-    $this->populate_events();
-
     // Get a list of all event repeats within the month
     $repeat_events = $this->find_repeat_events();
 
-    if ($repeat_events)
-    {
-      // Merge the two lists of event ids
-      $this->events = array_merge($this->events, $repeat_events);
-    }
+    // Merge the two lists of event ids
+    $this->events = array_merge($this->events, $repeat_events);
 
+    // Sort events by start time
     $this->events = $this->sort_events_by_start_time($this->events);
   }
 
@@ -85,77 +77,6 @@ class MonthlyEvents
     $this->unix_end_of_month   = mktime(23, 59, 00, $month + 1, 0, $year);
 
     return null;
-  }
-
-  protected function populate_events_ids()
-  {
-    // Build MySQL query
-    $q  = "SELECT evdet_id FROM x8g2f_jevents_vevdetail";
-    $q .= " WHERE dtstart >= " . $this->unix_start_of_month;
-    $q .= " AND dtstart <= " . $this->unix_end_of_month;
-    $q .= " ORDER BY dtstart ASC";
-
-    // Find the database connection
-    $db = Database::getInstance();
-
-    // Check connection status
-    if ($db->get_status() == "Disconnected")
-    {
-      if ($db->get_error_message())
-      {
-        $d = "Database connection error: " . $db->get_error_message();
-        $this->set_error($d);
-        return false;
-      }
-      else
-      {
-        $d = "Unspecified database connection error.";
-        $this->set_error($d);
-        return false;
-      }
-    }
-    else
-    {
-      // Make sure query is successful
-      if (!$result = $db->execute_query($q))
-      {
-        if ($db->get_error_message())
-        {
-          $d = "MySQL query error: " . $db->get_error_message();
-          $this->set_error($d);
-          return false;
-        }
-        else
-        {
-          $d = "MySQL query returned an unspecified error.";
-          $this->set_error($d);
-          return false;
-        }
-      }
-      else
-      {
-        // Find all events for that month and format it into an array
-        if ($result->num_rows == 0)
-        {
-          $d = "No events were found for this month.";
-          $this->set_warning($d);
-          $result->free();
-          return true;
-        }
-        else
-        {
-
-          while ($row = $result->fetch_assoc())
-          {
-            array_push($this->events_ids, $row["evdet_id"]);
-          }
-
-          $result->free();
-
-          return true;
-        }
-      }
-    }
   }
 
   private function find_repeat_events()
@@ -238,48 +159,6 @@ class MonthlyEvents
     return utf8_encode($date->format('Y-m-d H:i:s'));
   }
 
-  private function populate_events()
-  {
-    if ($this->events_ids == [])
-    {
-      $d = "Warning: there are no events for this month.";
-      $this->set_warning($d);
-    }
-    else
-    {
-      foreach ($this->events_ids as $event_id)
-      {
-        $event = new Event($event_id);
-
-        // Make sure the Event instance does not contain errors.
-        if ($event->get_errors())
-        {
-          $d = "Error (Event ID " . $event->get_id() . ": " . $event->get_errors();
-          $this->set_error($d);
-        }
-        else
-        {
-          if ($event->get_warnings())
-          {
-            $d = "Warning (Event ID " . $event->get_id() . ": " . $event->get_warnings();
-            $this->set_warning($d);
-          }
-
-          $array_event = [ "id"          => $event->get_id(),
-                           "t_start"     => $this->futfre($event->get_unix_timestamp_start()),
-                           "t_end"       => $this->futfre($event->get_unix_timestamp_end()),
-                           "category"    => $event->get_category(),
-                           "summary"     => $event->get_summary(),
-                           "description" => $event->get_description(),
-                           "warnings"    => $event->get_warnings(),
-                           "errors"      => $event->get_errors() ];
-
-          array_push($this->events, $array_event);
-        }
-      }
-    }
-  }
-
   private function populate_repeat_events($repeat_events_records)
   {
     $repeat_events = [];
@@ -307,8 +186,6 @@ class MonthlyEvents
                                 "description" => $repeat_event->get_description(),
                                 "warnings"    => $repeat_event->get_warnings(),
                                 "errors"      => $repeat_event->get_errors() ];
-
-        array_push($array_repeat_event["warnings"], "This is a repeat event.");
 
         array_push($repeat_events, $array_repeat_event);
       }
