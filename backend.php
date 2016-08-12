@@ -1,5 +1,8 @@
 <?php
 
+// Remove this in production:
+ini_set('display_errors', 1);
+
 // Add this in production:
 // header('Content-Type: application/json; charset=utf-8');
 

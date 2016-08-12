@@ -23,6 +23,15 @@ class MonthlyEvents
 
     // Populate list of every event requested
     $this->populate_events();
+
+    // Get a list of all event repeats within the month
+    $repeat_events = $this->find_repeat_events();
+
+    if ($repeat_events)
+    {
+      // Merge the two lists of event ids
+      $this->events = array_merge($this->events, $repeat_events);
+    }
   }
 
   public function get_year_number()
@@ -60,7 +69,7 @@ class MonthlyEvents
     return $this->errors;
   }
 
-  private function set_error()
+  private function set_error($d)
   {
     array_push($this->warnings, $d);
   }
@@ -83,12 +92,6 @@ class MonthlyEvents
     $q .= " WHERE dtstart >= " . $this->unix_start_of_month;
     $q .= " AND dtstart <= " . $this->unix_end_of_month;
     $q .= " ORDER BY dtstart ASC";
-
-    // Another query will be necessary to find repeat events. For example:
-    //
-    // SELECT eventdetail_id FROM x8g2f_jevents_repetition
-    // WHERE startrepeat BETWEEN '2014-04-01' AND '2014-04-30 23:59:59'
-    // ORDER BY startrepeat ASC
 
     // Find the database connection
     $db = Database::getInstance();
@@ -134,19 +137,103 @@ class MonthlyEvents
         {
           $d = "No events were found for this month.";
           $this->set_warning($d);
+          $result->free();
           return true;
+        }
+        else
+        {
+
+          while ($row = $result->fetch_assoc())
+          {
+            array_push($this->events_ids, $row["evdet_id"]);
+          }
+
+          $result->free();
+
+          return true;
+        }
+      }
+    }
+  }
+
+  private function find_repeat_events()
+  {
+    $repeat_events_records = [];
+
+    // Build MySQL query
+    $q  = "SELECT * FROM x8g2f_jevents_repetition";
+    $q .= " WHERE startrepeat";
+    $q .= " BETWEEN '" . $this->futfre($this->unix_start_of_month) . "'";
+    $q .= " AND '"     . $this->futfre($this->unix_end_of_month) . "'";
+    $q .= " ORDER BY startrepeat ASC";
+
+    // Find the database connection
+    $db = Database::getInstance();
+
+    // Check connection status
+    if ($db->get_status() == "Disconnected")
+    {
+      if ($db->get_error_message())
+      {
+        $d = "Database connection error: " . $db->get_error_message();
+        $this->set_error($d);
+        return false;
+      }
+      else
+      {
+        $d = "Unspecified database connection error.";
+        $this->set_error($d);
+        return false;
+      }
+    }
+    else
+    {
+      // Make sure query is successful
+      if (!$result = $db->execute_query($q))
+      {
+        if ($db->get_error_message())
+        {
+          $d = "MySQL query error: " . $db->get_error_message();
+          $this->set_error($d);
+          return false;
+        }
+        else
+        {
+          $d = "MySQL query returned an unspecified error.";
+          $this->set_error($d);
+          return false;
+        }
+      }
+      else
+      {
+        // Find all events for that month and format it into an array
+        if ($result->num_rows == 0)
+        {
+          $d = "No events were found for this month.";
+          $this->set_warning($d);
+          $result->free();
+          return false;
         }
         else
         {
           while($row = $result->fetch_assoc())
           {
-            array_push($this->events_ids, $row["evdet_id"]);
+            array_push($repeat_events_records, $row);
           }
+
           $result->free();
-          return true;
+
+          return $this->populate_repeat_events($repeat_events_records);
         }
       }
     }
+  }
+
+  private function futfre($unix_timestamp)
+  {
+    $date = new DateTime();
+    $date->setTimestamp($unix_timestamp);
+    return $date->format('Y-m-d H:i:s');
   }
 
   private function populate_events()
@@ -189,6 +276,41 @@ class MonthlyEvents
         }
       }
     }
+  }
+
+  private function populate_repeat_events($repeat_events_records)
+  {
+    $repeat_events = [];
+
+    if ($repeat_events_records == [])
+    {
+      $d = "Warning: there are no repeat events for this month.";
+      $this->set_warning($d);
+    }
+    else
+    {
+      foreach ($repeat_events_records as $repeat_event_record)
+      {
+        $repeat_event_id      = $repeat_event_record["eventdetail_id"];
+        $unix_timestamp_start = strtotime($repeat_event_record["startrepeat"]);
+        $unix_timestamp_end   = strtotime($repeat_event_record["endrepeat"]);
+
+        $repeat_event = new Event($repeat_event_id);
+
+        $array_repeat_event = [ "id"          => $repeat_event_id,
+                                "t_start"     => $unix_timestamp_start,
+                                "t_end"       => $unix_timestamp_end,
+                                "category"    => $repeat_event->get_category(),
+                                "summary"     => $repeat_event->get_summary(),
+                                "description" => $repeat_event->get_description(),
+                                "warnings"    => $repeat_event->get_warnings(),
+                                "errors"      => $repeat_event->get_errors() ];
+
+        array_push($repeat_events, $array_repeat_event);
+      }
+    }
+
+    return $repeat_events;
   }
 }
 
