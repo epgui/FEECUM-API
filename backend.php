@@ -1,5 +1,8 @@
 <?php
 
+// Add this in production:
+// header('Content-Type: application/json; charset=utf-8');
+
 include("class.dbconfig.php");
 include("class.database.php");
 include("class.event.php");
@@ -31,7 +34,7 @@ else
     $db = Database::getInstance();
     $db->connect_to_database();
 
-    // If connection is successful, get the list of events for the requested month
+    // Check if connection is successful
     if ($db->get_status() != "Connected")
     {
       $error         = true;
@@ -39,14 +42,9 @@ else
     }
     else
     {
+      // Get the list of events for the requested month
       $monthly_events = new MonthlyEvents($requested_y, $requested_m);
       $events = $monthly_events->get_events();
-
-      // ------------ //
-
-      die(var_dump($monthly_events));
-
-      // ------------ //
     }
 
     $db->disconnect();
@@ -54,7 +52,7 @@ else
 }
 
 // Format everything nicely in json
-$json = json_encode(array("error" => $error, "error_message" => $error_message, "events" => $events));
+$json = json_encode(array("error" => $error, "error_message" => $error_message, "events" => $events), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 // Output result
 echo($json);

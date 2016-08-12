@@ -46,12 +46,15 @@ class Database extends Dbconfig
     {
       // Open a connection to MySQL
       $this->db_connection = new mysqli($this->mysql_host, $this->mysql_user, $this->mysql_password, $this->mysql_database);
-      return $this->check_database_connection();
+
+      // Change character set to UTF-8
+      if (!$this->db_connection->set_charset("utf8"))
+      {
+        $this->error_message = "Error loading character set utf8: " . $this->db_connection->error;
+        return $this->disconnect();
+      }
     }
-    else
-    {
-      return $this->check_database_connection();
-    }
+    return $this->check_database_connection();
   }
 
   public function check_database_connection()

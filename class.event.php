@@ -50,7 +50,7 @@ class Event
 
   public function get_warnings()
   {
-    return $this->warnings;
+    //return array_map("utf8_encode", $this->warnings);
   }
 
   public function set_warning($d)
@@ -60,7 +60,7 @@ class Event
 
   public function get_errors()
   {
-    return $this->errors;
+    //return array_map("utf8_encode", $this->errors);
   }
 
   public function set_error($d)

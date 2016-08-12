@@ -175,7 +175,17 @@ class MonthlyEvents
             $d = "Warning (Event ID " . $event->get_id() . ": " . $event->get_warnings();
             $this->set_warning($d);
           }
-          array_push($this->events, $event);
+
+          $array_event = [ "id"          => $event->get_id(),
+                           "t_start"     => $event->get_unix_timestamp_start(),
+                           "t_end"       => $event->get_unix_timestamp_end(),
+                           "category"    => $event->get_category(),
+                           "summary"     => $event->get_summary(),
+                           "description" => $event->get_description(),
+                           "warnings"    => $event->get_warnings(),
+                           "errors"      => $event->get_errors() ];
+
+          array_push($this->events, $array_event);
         }
       }
     }
