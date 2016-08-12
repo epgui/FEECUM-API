@@ -233,7 +233,7 @@ class MonthlyEvents
   {
     $date = new DateTime();
     $date->setTimestamp($unix_timestamp);
-    return $date->format('Y-m-d H:i:s');
+    return utf8_encode($date->format('Y-m-d H:i:s'));
   }
 
   private function populate_events()
@@ -264,8 +264,8 @@ class MonthlyEvents
           }
 
           $array_event = [ "id"          => $event->get_id(),
-                           "t_start"     => $event->get_unix_timestamp_start(),
-                           "t_end"       => $event->get_unix_timestamp_end(),
+                           "t_start"     => $this->futfre($event->get_unix_timestamp_start()),
+                           "t_end"       => $this->futfre($event->get_unix_timestamp_end()),
                            "category"    => $event->get_category(),
                            "summary"     => $event->get_summary(),
                            "description" => $event->get_description(),
@@ -298,8 +298,8 @@ class MonthlyEvents
         $repeat_event = new Event($repeat_event_id);
 
         $array_repeat_event = [ "id"          => $repeat_event_id,
-                                "t_start"     => $unix_timestamp_start,
-                                "t_end"       => $unix_timestamp_end,
+                                "t_start"     => $this->futfre($unix_timestamp_start),
+                                "t_end"       => $this->futfre($unix_timestamp_end),
                                 "category"    => $repeat_event->get_category(),
                                 "summary"     => $repeat_event->get_summary(),
                                 "description" => $repeat_event->get_description(),
