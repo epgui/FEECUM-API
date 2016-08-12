@@ -9,8 +9,8 @@ class Event
   protected $category;
   protected $summary;
   protected $description;
-  protected $warnings;
-  protected $errors;
+  protected $warnings = [];
+  protected $errors = [];
 
   function __construct($event_id)
   {
@@ -50,7 +50,7 @@ class Event
 
   public function get_warnings()
   {
-    //return array_map("utf8_encode", $this->warnings);
+    return $this->warnings;
   }
 
   public function set_warning($d)
@@ -60,7 +60,7 @@ class Event
 
   public function get_errors()
   {
-    //return array_map("utf8_encode", $this->errors);
+    return $this->errors;
   }
 
   public function set_error($d)

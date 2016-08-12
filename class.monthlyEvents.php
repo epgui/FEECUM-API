@@ -308,6 +308,8 @@ class MonthlyEvents
                                 "warnings"    => $repeat_event->get_warnings(),
                                 "errors"      => $repeat_event->get_errors() ];
 
+        array_push($array_repeat_event["warnings"], "This is a repeat event.");
+
         array_push($repeat_events, $array_repeat_event);
       }
     }
