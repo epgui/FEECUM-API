@@ -1,10 +1,13 @@
 <?php
 
 // Remove this in production:
-ini_set('display_errors', 1);
+// ini_set('display_errors', 1);
 
 // Add this in production:
 header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
+header("Access-Control-Allow-Headers: X-Requested-With");
 
 include("class.dbconfig.php");
 include("class.database.php");
