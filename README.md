@@ -15,3 +15,5 @@ backend.php?year=2014&month=4
 ```
 
 Returns all events for April 2014.
+
+![](readme-hr.png)
