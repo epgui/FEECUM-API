@@ -123,7 +123,7 @@ class Event
           // Populate relevant properties
           $this->t_start     = $event_record["dtstart"];
           $this->t_end       = $event_record["dtend"];
-          $this->description = $event_record["description"];
+          $this->description = strip_tags($event_record["description"]);
           $this->summary     = $event_record["summary"];
 
           // Populate category data
