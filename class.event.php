@@ -123,8 +123,26 @@ class Event
           // Populate relevant properties
           $this->t_start     = $event_record["dtstart"];
           $this->t_end       = $event_record["dtend"];
-          $this->description = strip_tags($event_record["description"]);
+          $this->description = $event_record["description"];
           $this->summary     = $event_record["summary"];
+
+          // Sanitize description HTML mumbo jumbo
+          $regex_hovercard_attributes = '/ data-hovercard=(["\'])[^\1]*?\1/i';
+          $regex_target_attributes    = '/ target=(["\'])[^\1]*?\1/i';
+          $regex_style_attributes     = '/ style=(["\'])[^\1]*?\1/i';
+          $regex_rel_attributes       = '/ rel=(["\'])[^\1]*?\1/i';
+          $regex_span_tags            = '/<\/?span( class=\\"\w*\\")?>/';
+          $regex_br_tags              = '/(<br\W*?\/>)+/';
+          $this->description          = preg_replace($regex_hovercard_attributes, '', $this->description);
+          $this->description          = preg_replace($regex_target_attributes,    '', $this->description);
+          $this->description          = preg_replace($regex_style_attributes,     '', $this->description);
+          $this->description          = preg_replace($regex_rel_attributes,       '', $this->description);
+          $this->description          = preg_replace($regex_span_tags,            '', $this->description);
+          $this->description          = preg_replace($regex_br_tags,       "</p><p>", $this->description);
+          $this->description          = "<p>" . $this->description . "</p>";
+          $this->description          = preg_replace('/(<p>)+/',               "<p>", $this->description);
+          $this->description          = preg_replace('/(<\/p>)+/',            "</p>", $this->description);
+          $this->description          = preg_replace('/<p><\/p>/',                '', $this->description);
 
           // Populate category data
           $this->populate_event_category_id();
